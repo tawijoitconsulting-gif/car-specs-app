@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Car Specs App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
@@ -12,18 +12,119 @@
       padding: 20px;
       margin: 0;
     }
-
     h1 {
       text-align: center;
-      margin-bottom: 20px;
     }
-
     select, input, button {
       width: 100%;
       padding: 12px;
       margin-bottom: 12px;
       font-size: 16px;
     }
-
     button {
       background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🚗 Car Specs</h1>
+
+<select id="makeSelect">
+  <option>Loading makes…</option>
+</select>
+
+<select id="modelSelect" disabled>
+  <option>Select model</option>
+</select>
+
+<select id="yearSelect" disabled>
+  <option>Select year</option>
+</select>
+
+<div id="results"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const makeSelect = document.getElementById("makeSelect");
+  const modelSelect = document.getElementById("modelSelect");
+  const yearSelect = document.getElementById("yearSelect");
+  const results = document.getElementById("results");
+
+  // LOAD MAKES
+  fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json")
+    .then(res => res.json())
+    .then(data => {
+      makeSelect.innerHTML = '<option value="">Select make</option>';
+      data.Results
+        .sort((a, b) => a.Make_Name.localeCompare(b.Make_Name))
+        .forEach(make => {
+          const opt = document.createElement("option");
+          opt.value = make.Make_Name;
+          opt.textContent = make.Make_Name;
+          makeSelect.appendChild(opt);
+        });
+    });
+
+  // LOAD MODELS
+  makeSelect.addEventListener("change", () => {
+    const make = makeSelect.value;
+    modelSelect.innerHTML = "<option>Loading models…</option>";
+    modelSelect.disabled = true;
+    yearSelect.disabled = true;
+    results.innerHTML = "";
+
+    if (!make) return;
+
+    fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`)
+      .then(res => res.json())
+      .then(data => {
+        modelSelect.innerHTML = '<option value="">Select model</option>';
+        data.Results.forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m.Model_Name;
+          opt.textContent = m.Model_Name;
+          modelSelect.appendChild(opt);
+        });
+        modelSelect.disabled = false;
+      });
+  });
+
+  // LOAD YEARS
+  modelSelect.addEventListener("change", () => {
+    yearSelect.innerHTML = '<option value="">Select year</option>';
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear; y >= 1980; y--) {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      yearSelect.appendChild(opt);
+    }
+    yearSelect.disabled = false;
+  });
+
+  // SHOW RESULT
+  yearSelect.addEventListener("change", () => {
+    results.innerHTML = `
+      <div class="card">
+        <h3>${makeSelect.value} ${modelSelect.value}</h3>
+        <p>Year: ${yearSelect.value}</p>
+      </div>
+    `;
+  });
+
+});
+</script>
+
+</body>
+</html>
