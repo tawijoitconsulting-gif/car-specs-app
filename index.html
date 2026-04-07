@@ -3,172 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <title>Car Specs Search</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       padding: 20px;
+      margin: 0;
     }
+
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
+
+    select,
+    input,
     button {
-      cursor: pointer;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-
-<body>
-
-  const makeSelect = document.getElementById("makeSelect");
-const results = document.getElementById("results");
-
-/* Load makes on page load */
-fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json")
-  .then(res => res.json())
-  .then(data => {
-    data.Results
-      .sort((a, b) => a.Make_Name.localeCompare(b.Make_Name))
-      .forEach(make => {
-        const option = document.createElement("option");
-        option.value = make.Make_Name;
-        option.textContent = make.Make_Name;
-        makeSelect.appendChild(option);
-      });
-  });
-function loadModels() {
-  const make = makeSelect.value;
-  if (!make) {
-    results.innerHTML = "";
-    return;
-  }
-
-  results.innerHTML = "Loading models...";
-
-  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`)
-    .then(res => res.json())
-    .then(data => {
-      results.innerHTML = "";
-
-      if (!data.Results.length) {
-        results.innerHTML = "No models found.";
-        return;
-      }
-
-      data.Results.forEach(car => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `<strong>${car.Make_Name} ${car.Model_Name}</strong>`;
-        results.appendChild(div);
-      });
-    })
-    .catch(() => {
-      results.innerHTML = "Failed to load models.";
-    });
-}
-
-<h1>🚗 Car Specs Search</h1>
-
-<!-- SEARCH BY MAKE -->
-  <select id="makeSelect" onchange="loadModels()">
-  <option value="">Select a make</option>
-</select>
-<input
-  id="makeInput"
-  placeholder="Search by make (e.g. Toyota, BMW)"
-/>
-<button onclick="searchByMake()">Search Models</button>
-
-<!-- SEARCH BY VIN -->
-<input
-  id="vinInput"
-  placeholder="Decode VIN (17 characters)"
-/>
-<button onclick="decodeVIN()">Decode VIN</button>
-
-<div id="results"></div>
-
-<script>
-const results = document.getElementById("results");
-
-/* ========== SEARCH MODELS BY MAKE ========== */
-function searchByMake() {
-  const make = document.getElementById("makeInput").value.trim();
-  if (!make) return;
-
-  results.innerHTML = "Loading...";
-
-  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`)
-    .then(res => res.json())
-    .then(data => {
-      results.innerHTML = "";
-
-      if (!data.Results.length) {
-        results.innerHTML = "No models found.";
-        return;
-      }
-
-      data.Results.slice(0, 30).forEach(car => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <strong>${car.Make_Name} ${car.Model_Name}</strong>
-        `;
-        results.appendChild(div);
-      });
-    })
-    .catch(() => {
-      results.innerHTML = "Error fetching data.";
-    });
-}
-
-/* ========== DECODE VIN ========== */
-function decodeVIN() {
-  const vin = document.getElementById("vinInput").value.trim();
-  if (vin.length < 11) {
-    alert("Please enter a valid VIN.");
-    return;
-  }
-
-  results.innerHTML = "Decoding VIN...";
-
-  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`)
-    .then(res => res.json())
-    .then(data => {
-      const car = data.Results[0];
-      results.innerHTML = "";
-
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = `
-        <h3>${car.Make} ${car.Model} (${car.ModelYear})</h3>
-        <div>Body: ${car.BodyClass || "N/A"}</div>
-        <div>Engine: ${car.EngineCylinders || "N/A"} cylinders</div>
-        <div>Fuel: ${car.FuelTypePrimary || "N/A"}</div>
-        <div>Drive: ${car.DriveType || "N/A"}</div>
-        <div>Plant Country: ${car.PlantCountry || "N/A"}</div>
-      `;
-      results.appendChild(div);
-    })
-    .catch(() => {
-      results.innerHTML = "VIN decode failed.";
-    });
-}
-</script>
-
-</body>
-</html>
