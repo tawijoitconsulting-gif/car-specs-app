@@ -34,9 +34,59 @@
 
 <body>
 
+  const makeSelect = document.getElementById("makeSelect");
+const results = document.getElementById("results");
+
+/* Load makes on page load */
+fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json")
+  .then(res => res.json())
+  .then(data => {
+    data.Results
+      .sort((a, b) => a.Make_Name.localeCompare(b.Make_Name))
+      .forEach(make => {
+        const option = document.createElement("option");
+        option.value = make.Make_Name;
+        option.textContent = make.Make_Name;
+        makeSelect.appendChild(option);
+      });
+  });
+function loadModels() {
+  const make = makeSelect.value;
+  if (!make) {
+    results.innerHTML = "";
+    return;
+  }
+
+  results.innerHTML = "Loading models...";
+
+  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`)
+    .then(res => res.json())
+    .then(data => {
+      results.innerHTML = "";
+
+      if (!data.Results.length) {
+        results.innerHTML = "No models found.";
+        return;
+      }
+
+      data.Results.forEach(car => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<strong>${car.Make_Name} ${car.Model_Name}</strong>`;
+        results.appendChild(div);
+      });
+    })
+    .catch(() => {
+      results.innerHTML = "Failed to load models.";
+    });
+}
+
 <h1>🚗 Car Specs Search</h1>
 
 <!-- SEARCH BY MAKE -->
+  <select id="makeSelect" onchange="loadModels()">
+  <option value="">Select a make</option>
+</select>
 <input
   id="makeInput"
   placeholder="Search by make (e.g. Toyota, BMW)"
