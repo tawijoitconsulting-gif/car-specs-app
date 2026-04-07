@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Car Specs Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -14,20 +14,20 @@
     h1 {
       text-align: center;
     }
-    input {
+    input, button {
       width: 100%;
       padding: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-size: 16px;
     }
-    .car {
-      background: #fff;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 6px;
+    button {
+      cursor: pointer;
     }
-    .spec {
-      margin: 4px 0;
+    .card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -36,51 +36,87 @@
 
 <h1>🚗 Car Specs Search</h1>
 
+<!-- SEARCH BY MAKE -->
 <input
-  type="text"
-  id="search"
-  placeholder="Search by make or model..."
-  onkeyup="searchCars()"
+  id="makeInput"
+  placeholder="Search by make (e.g. Toyota, BMW)"
 />
+<button onclick="searchByMake()">Search Models</button>
+
+<!-- SEARCH BY VIN -->
+<input
+  id="vinInput"
+  placeholder="Decode VIN (17 characters)"
+/>
+<button onclick="decodeVIN()">Decode VIN</button>
 
 <div id="results"></div>
 
 <script>
-let cars = [];
+const results = document.getElementById("results");
 
-fetch("cars.json")
-  .then(response => response.json())
-  .then(data => {
-    cars = data;
-    displayCars(cars);
-  });
+/* ========== SEARCH MODELS BY MAKE ========== */
+function searchByMake() {
+  const make = document.getElementById("makeInput").value.trim();
+  if (!make) return;
 
-function displayCars(list) {
-  const results = document.getElementById("results");
-  results.innerHTML = "";
+  results.innerHTML = "Loading...";
 
-  list.forEach(car => {
-    const div = document.createElement("div");
-    div.className = "car";
-    div.innerHTML = `
-      <h3>${car.make} ${car.model} (${car.year})</h3>
-      <div class="spec">Engine: ${car.engine}</div>
-      <div class="spec">Power: ${car.power}</div>
-      <div class="spec">Torque: ${car.torque}</div>
-      <div class="spec">Drivetrain: ${car.drivetrain}</div>
-      <div class="spec">0–100 km/h: ${car.zeroToHundred}</div>
-    `;
-    results.appendChild(div);
-  });
+  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`)
+    .then(res => res.json())
+    .then(data => {
+      results.innerHTML = "";
+
+      if (!data.Results.length) {
+        results.innerHTML = "No models found.";
+        return;
+      }
+
+      data.Results.slice(0, 30).forEach(car => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <strong>${car.Make_Name} ${car.Model_Name}</strong>
+        `;
+        results.appendChild(div);
+      });
+    })
+    .catch(() => {
+      results.innerHTML = "Error fetching data.";
+    });
 }
 
-function searchCars() {
-  const term = document.getElementById("search").value.toLowerCase();
-  const filtered = cars.filter(car =>
-    car.make.toLowerCase().includes(term) ||
-    car.model.toLowerCase().includes(term)
-  );
-  displayCars(filtered);
+/* ========== DECODE VIN ========== */
+function decodeVIN() {
+  const vin = document.getElementById("vinInput").value.trim();
+  if (vin.length < 11) {
+    alert("Please enter a valid VIN.");
+    return;
+  }
+
+  results.innerHTML = "Decoding VIN...";
+
+  fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`)
+    .then(res => res.json())
+    .then(data => {
+      const car = data.Results[0];
+      results.innerHTML = "";
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <h3>${car.Make} ${car.Model} (${car.ModelYear})</h3>
+        <div>Body: ${car.BodyClass || "N/A"}</div>
+        <div>Engine: ${car.EngineCylinders || "N/A"} cylinders</div>
+        <div>Fuel: ${car.FuelTypePrimary || "N/A"}</div>
+        <div>Drive: ${car.DriveType || "N/A"}</div>
+        <div>Plant Country: ${car.PlantCountry || "N/A"}</div>
+      `;
+      results.appendChild(div);
+    })
+    .catch(() => {
+      results.innerHTML = "VIN decode failed.";
+    });
 }
 </script>
 
