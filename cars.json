@@ -1,0 +1,32 @@
+[
+  {
+    "make": "Toyota",
+    "model": "Corolla",
+    "year": 2021,
+    "engine": "1.8L",
+    "power": "139 hp",
+    "torque": "171 Nm",
+    "drivetrain": "FWD",
+    "zeroToHundred": "9.2 s"
+  },
+  {
+    "make": "BMW",
+    "model": "M3",
+    "year": 2022,
+    "engine": "3.0L Twin‑Turbo",
+    "power": "473 hp",
+    "torque": "550 Nm",
+    "drivetrain": "RWD",
+    "zeroToHundred": "4.1 s"
+  },
+  {
+    "make": "Volkswagen",
+    "model": "Golf GTI",
+    "year": 2020,
+    "engine": "2.0L Turbo",
+    "power": "241 hp",
+    "torque": "370 Nm",
+    "drivetrain": "FWD",
+    "zeroToHundred": "6.2 s"
+  }
+]

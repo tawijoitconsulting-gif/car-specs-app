@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Specs Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .car {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+    }
+    .spec {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🚗 Car Specs Search</h1>
+
+<input
+  type="text"
+  id="search"
+  placeholder="Search by make or model..."
+  onkeyup="searchCars()"
+/>
+
+<div id="results"></div>
+
+<script>
+let cars = [];
+
+fetch("cars.json")
+  .then(response => response.json())
+  .then(data => {
+    cars = data;
+    displayCars(cars);
+  });
+
+function displayCars(list) {
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+
+  list.forEach(car => {
+    const div = document.createElement("div");
+    div.className = "car";
+    div.innerHTML = `
+      <h3>${car.make} ${car.model} (${car.year})</h3>
+      <div class="spec">Engine: ${car.engine}</div>
+      <div class="spec">Power: ${car.power}</div>
+      <div class="spec">Torque: ${car.torque}</div>
+      <div class="spec">Drivetrain: ${car.drivetrain}</div>
+      <div class="spec">0–100 km/h: ${car.zeroToHundred}</div>
+    `;
+    results.appendChild(div);
+  });
+}
+
+function searchCars() {
+  const term = document.getElementById("search").value.toLowerCase();
+  const filtered = cars.filter(car =>
+    car.make.toLowerCase().includes(term) ||
+    car.model.toLowerCase().includes(term)
+  );
+  displayCars(filtered);
+}
+</script>
+
+</body>
+</html>
